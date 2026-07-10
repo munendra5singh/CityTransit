@@ -1,0 +1,31 @@
+{
+  "summary": "Frontend-only smoke test after date-fns@^3.6.0 + react-day-picker@^9.4.0 dependency bump. All requested flows verified: (1) landing renders with hero-search-input, (2) admin login via demo-admin-btn+login-submit-btn redirects to /admin with all 7 tabs present (dashboard/drivers/vehicles/routes/users/live/reports) and dashboard stats visible (2 drivers, 3 vehicles, 6 routes, 1 live), (3) driver login via demo-driver-btn redirects to /driver with go-live-btn (shown when offline) plus driver-vehicle-select and driver-route-select populated (UP14AB1234 Bus, Ghaziabad→Noida), (4) /passenger renders .leaflet-container with dark tile layer and 'No live vehicles' empty state, (5) /register renders and all 7 required testids present after minor testid rename fix. ZERO react-day-picker / date-fns runtime errors in browser console. Frontend webpack compiled with just a pre-existing eslint hooks-exhaustive-deps warning in DriverPage.jsx (unrelated to dep bump).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "AppHeader (global)", "issues": ["React hydration warning in console: '<span> cannot be a child of <option>' — a Select/Option component is rendering a span inside a native <option>. Non-fatal but pollutes console."]},
+      {"screen": "Various", "issues": ["4x 401 responses in console at load — likely /api/auth/me being called without token on public pages. Harmless but noisy."]}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_2.json"],
+  "action_items": [
+    "OPTIONAL (low priority): fix DriverPage.jsx line 94 useEffect missing 'session' dependency warning.",
+    "OPTIONAL (low priority): suppress or gate /api/auth/me call so it doesn't 401 on public pages (LandingPage, Register, Login, Passenger).",
+    "OPTIONAL (low priority): fix hydration warning about <span> child of <option> — likely in a shadcn Select component rendering.",
+    "User's request to 'commit and push to GitHub' is out of scope for the sandbox — main agent should tell user to do it locally with their own git credentials."
+  ],
+  "critical_code_review_comments": [
+    "Dependency fix (date-fns ^3.6.0 + react-day-picker ^9.4.0) is safe at runtime — the shadcn calendar.jsx that uses react-day-picker is never imported anywhere in the actual app, so the v8→v9 API drift (DayPicker props renamed) doesn't crash anything. If the calendar component is ever imported later, its Chevron/IconLeft/IconRight props and classNames will need to be updated for v9 API.",
+    "RegisterPage.jsx had two testid mismatches with the spec: 'reg-email-input' → renamed to 'register-email-input', 'role-driver-btn' → renamed to 'register-role-driver'. Fixed."
+  ],
+  "updated_files": ["/app/frontend/src/pages/RegisterPage.jsx"],
+  "success_rate": {"backend": "not tested (out of scope)", "frontend": "100% after minor testid rename"},
+  "test_credentials": "admin@citytransit.in/admin123, driver@citytransit.in/driver123, user@citytransit.in/user123 — all working",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "date-fns / react-day-picker dependency fix verified — no runtime crashes. All 7 register testids now present. All 7 admin tabs present. Driver toggle works (go-live-btn shows when OFFLINE, go-offline-btn when LIVE). Passenger leaflet map renders. Only cosmetic warnings remaining: (a) DriverPage useEffect missing dep, (b) 401 spam from /api/auth/me on public pages, (c) hydration <span>-in-<option> warning. None are regressions from this dep bump.",
+  "rca of the issue": "N/A — this iteration was a dependency-fix regression check, not a bug fix. Original Vercel ERESOLVE was caused by date-fns@4 (unsupported by react-day-picker@8). Chosen fix (date-fns@^3.6.0 + react-day-picker@^9.4.0) is compatible with React 19 as well. Verified no runtime import of react-day-picker occurs from the running app (calendar.jsx is dead code), so v9 API changes don't affect current UX."
+}

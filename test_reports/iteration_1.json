@@ -1,0 +1,52 @@
+{
+  "summary": "First-finish smoke test of CityTransit backend + frontend. Backend auth (admin/driver/passenger login, register, duplicate/wrong-pw/unauth guards), routes (5 seeded), driver vehicles, go-live -> location -> live/vehicles -> go-offline, admin stats + admin lists (drivers/vehicles/routes/users), route creation (driver=pending, admin=approved), vehicle creation + approval, and admin approve of a newly registered driver all working. Frontend landing, admin demo login + tabs (dashboard/drivers/vehicles/routes/users/live), driver demo login with Go Live + vehicle/route selects, and passenger page with Leaflet map + 'No live vehicles' empty state all working. Register page renders but inputs lack data-testids.",
+  "tested_scope": ["backend", "frontend", "auth", "integration"],
+  "passed": [
+    "POST /api/auth/register creates passenger + returns token + user",
+    "Admin login returns role=admin (admin@citytransit.in)",
+    "Driver login returns role=driver, status=approved",
+    "Duplicate register -> 400; wrong password -> 401; unauth /api/admin/stats -> 401",
+    "GET /api/routes returns 5 seeded routes (Ghaziabad→Noida, Delhi→Ghaziabad, Meerut→Modinagar, Hapur→Pilkhuwa, Noida→Faridabad) all approved",
+    "GET /api/vehicles (driver) returns UP14AB1234 Bus",
+    "POST /api/driver/go-live creates session",
+    "POST /api/driver/location with {latitude,longitude,speed} returns {ok:true, distance_km}",
+    "GET /api/live/vehicles returns live vehicle with lat/lng/speed",
+    "POST /api/driver/go-offline clears live_locations (subsequent /live/vehicles returns [])",
+    "GET /api/admin/stats returns total_drivers/vehicles/routes/live_vehicles etc.",
+    "GET /api/admin/{drivers,vehicles,routes,users} all return arrays",
+    "POST /api/admin/drivers/{id}/approve returns 200 for newly registered driver",
+    "POST /api/routes: admin -> status=approved, driver -> status=pending",
+    "POST /api/vehicles by driver creates pending vehicle; POST /api/vehicles/{id}/approve by admin returns 200",
+    "Landing page renders with data-testid=hero-search-input",
+    "Login /admin demo btn fills & submits, redirects to /admin",
+    "Admin page: tabs drivers/vehicles/routes/users/live all present; Routes tab lists seeded routes",
+    "Driver demo login redirects /driver; go-live-btn, driver-vehicle-select, driver-route-select all found",
+    "Passenger page loads with .leaflet-container and 'No live vehicles' empty state"
+  ],
+  "failed": [
+    {
+      "area": "frontend / register page",
+      "issue": "Register form inputs and submit button lack data-testid attributes (register-name-input, register-email-input, register-password-input, register-submit-btn). Page renders correctly but not E2E testable via testids.",
+      "evidence": "Playwright query for [data-testid=\"register-name-input\"] returned MISSING; screenshot shows form is visually present at /register.",
+      "priority": "MEDIUM"
+    },
+    {
+      "area": "docs / problem statement mismatch (not a bug, informational)",
+      "issue": "Problem statement listed some endpoint/field names that don't match actual server: /driver/location expects {latitude, longitude} (not lat/lng); /routes expects {origin, destination} (not start/end); approve endpoints are /vehicles/{id}/approve and /routes/{id}/approve (not /admin/vehicles/{id}/approve). Verified that server + frontend use the actual (latitude/longitude, origin/destination) names, so functionality is fine.",
+      "evidence": "422 with 'Field required: latitude/longitude' for lat/lng payload; retry with latitude/longitude returned 200 {ok:true, distance_km:0.0}.",
+      "priority": "LOW"
+    },
+    {
+      "area": "role guard",
+      "issue": "Passenger POST /api/admin/drivers returned 405 (Method Not Allowed) instead of 403 because there is no POST endpoint on /api/admin/drivers (only GET). Access is still properly restricted for real admin actions (approve/block/delete require admin).",
+      "evidence": "curl POST /api/admin/drivers with passenger token -> 405.",
+      "priority": "LOW"
+    }
+  ],
+  "action_items": [
+    "Add data-testids to /register page inputs: register-name-input, register-email-input, register-password-input, register-mobile-input (optional), register-role-passenger, register-role-driver, register-submit-btn."
+  ],
+  "success_rate": {"backend": "100%", "frontend": "~95% (register form testids missing)"},
+  "retest_needed": false,
+  "full_testing_deferred": true
+}

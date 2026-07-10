@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>CityTransit</title>
+        <!--
+          GitHub Pages has no server-side routing, so any deep link (e.g.
+          /routes) that isn't a real file 404s. GitHub Pages serves this file
+          on any 404, and this script redirects back to index.html while
+          encoding the original path in the querystring so index.html's
+          script can restore it. This makes React Router (BrowserRouter)
+          deep links and page refreshes work correctly on GitHub Pages.
+          Based on https://github.com/rafgraph/spa-github-pages
+        -->
+        <script>
+            var segmentCount = 1; // matches the repo name segment in the path, e.g. /<repo-name>/routes
+            var l = window.location;
+            l.replace(
+                l.protocol +
+                    "//" +
+                    l.hostname +
+                    (l.port ? ":" + l.port : "") +
+                    l.pathname
+                        .split("/")
+                        .slice(0, 1 + segmentCount)
+                        .join("/") +
+                    "/?/" +
+                    l.pathname
+                        .slice(1)
+                        .split("/")
+                        .slice(segmentCount)
+                        .join("/")
+                        .replace(/&/g, "~and~") +
+                    (l.search ? "&" + l.search.slice(1).replace(/&/g, "~and~") : "") +
+                    l.hash
+            );
+        </script>
+    </head>
+    <body></body>
+</html>
