@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://<your-github-username>.github.io/<your-repo-name>",
+  "homepage": "https://munendra5singh.github.io/<your-repo-name>",
   "dependencies": {
     "@fontsource/ibm-plex-sans": "^5.2.8",
     "@fontsource/outfit": "^5.2.8",
